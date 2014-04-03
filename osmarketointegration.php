@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: Wordpress Marketo OutSystems Integration
- * Plugin URI: https://github.com/kelter-antunes
- * Description: This is de description.
+ * Plugin Name: kWordpress-Mkto
+ * Plugin URI: https://github.com/kelter-antunes/kWordpress-Mkto
+ * Description: Simple but awesome Marketo integration with Wordpress. It wraps the scheduleCampaign() Api call, to send email to an email subscribers smart list.
  * Version: 0.2
  * Author: Miguel Antunes
  * Author URI: https://github.com/kelter-antunes
  * License: GPL2
- * Copyright 2014  Miguel Antunes  (email : miguel.aka.kelter@gmail.com)
+ * Copyright 2014 Miguel Antunes  (email : miguel.aka.kelter@gmail.com)
  */
 /*
     This program is free software; you can redistribute it and/or modify
