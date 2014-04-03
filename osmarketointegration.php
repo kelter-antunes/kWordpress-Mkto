@@ -50,13 +50,13 @@
     	$marketoSecretKey = get_option('wmi-mkto-marketo-secret-key');
     	$marketoNameSpace = get_option('wmi-mkto-marketo-name-space');
 
-    	$marketoProgramName = get_option('wmi-mkto-marketo-program-name'); //"Blog Sub"
-    	$marketoCampaignName = get_option('wmi-mkto-marketo-campaign-name'); //"New Blog Post"
+    	$marketoProgramName = get_option('wmi-mkto-marketo-program-name');
+    	$marketoCampaignName = get_option('wmi-mkto-marketo-campaign-name');
 
 
-    	$marketoTitleToken = get_option('wmi-mkto-marketo-token-title'); //"Blog Sub"
-    	$marketoContentToken = get_option('wmi-mkto-marketo-token-content'); //"New Blog Post"
-    	$marketoLinkToken = get_option('wmi-mkto-marketo-token-link'); //"New Blog Post"
+    	$marketoTitleToken = get_option('wmi-mkto-marketo-token-title');
+    	$marketoContentToken = get_option('wmi-mkto-marketo-token-content');
+    	$marketoLinkToken = get_option('wmi-mkto-marketo-token-link');
 
 
 		// Create Signature
