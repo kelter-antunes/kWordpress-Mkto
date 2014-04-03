@@ -165,7 +165,7 @@
     	}
 
     	function wmi_admin_menu() {
-    		add_options_page('Wordpress Marketo OutSystems', 'Marketo OutSystems', 'administrator', 'marketo-outsystems.php', 'wmi_options_page');
+    		add_options_page('k Wordpress Mkto', 'kWordpress-Mkto', 'administrator', 'k-wordpress-mkto.php', 'wmi_options_page');
     	}
 
     	function wmi_register_settings() {
@@ -191,7 +191,7 @@
 
     		?>
     		<div class="wrap">
-    			<h2>Wordpress Marketo OutSystems Integration</h2>
+    			<h2>kWordpress-Mkto</h2>
 
     			<form method="post" action="options.php">
     				<?php settings_fields( 'wmi-settings-group-api' ); ?>
