@@ -25,7 +25,7 @@
 */
 
     function wmi_scripts() {
-    	wp_enqueue_script( 'osmarketo.js', plugins_url() . '/os-marketo-integration/osmarketo.js', array(), '1.0.0', false );
+    	//wp_enqueue_script( 'k-wordpress-mkto.js', plugins_url() . '/os-marketo-integration/k-wordpress-mkto.js', array(), '1.0.0', false );
     }
 
 
