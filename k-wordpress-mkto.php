@@ -112,7 +112,7 @@ function mkto_scheduleCampaign( $post_id ) {
     $debug = true;
 
     if ( $debug == false ) {   
-        $disabled = get_post_meta( $post_ID, 'send_email_disabled', true );
+        $disabled = get_post_meta( $post_id, 'send_email_disabled', true );
     }
 
     if ( ( ( $_POST['post_status'] == 'publish' ) && empty( $disabled ) ) || $debug ) {
@@ -202,7 +202,7 @@ function mkto_scheduleCampaign( $post_id ) {
         }
 
     }
-    return $post_ID;
+    return $post_id;
 }
 //add_action('publish_post', 'os_scheduleCampaign');
 
