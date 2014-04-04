@@ -33,90 +33,94 @@
 
         $debug = true;
 
+
+        if( ( $_POST['post_status'] == 'publish' ) && ( $_POST['original_post_status'] != 'publish' ) || $debug ) {
+
         // Get Post Info
 
-        $post = get_post( $post_ID );
+            $post = get_post( $post_ID );
 
-        $title = $post->post_title;
+            $title = $post->post_title;
 
-        $pos = stripos( $post->post_content, '<!--more-->' );
-        $pos = ($pos===false) ? 50 : $pos;
-        $resume = substr( $post->post_content, 0, $pos );
-        $link = get_permalink( $post_ID ) . '?utm_source=blog&utm_medium=email&utm_campaign=';
-
-
-        $marketoSoapEndPoint = get_option('wmi-mkto-soap-end-point');
-        $marketoUserId = get_option('wmi-mkto-marketo-user-id');
-        $marketoSecretKey = get_option('wmi-mkto-marketo-secret-key');
-        $marketoNameSpace = get_option('wmi-mkto-marketo-name-space');
-
-        $marketoProgramName = get_option('wmi-mkto-marketo-program-name');
-        $marketoCampaignName = get_option('wmi-mkto-marketo-campaign-name');
+            $pos = stripos( $post->post_content, '<!--more-->' );
+            $pos = ($pos===false) ? 50 : $pos;
+            $resume = substr( $post->post_content, 0, $pos );
+            $link = get_permalink( $post_ID ) . '?utm_source=blog&utm_medium=email&utm_campaign=';
 
 
-        $marketoTitleToken = get_option('wmi-mkto-marketo-token-title');
-        $marketoContentToken = get_option('wmi-mkto-marketo-token-content');
-        $marketoLinkToken = get_option('wmi-mkto-marketo-token-link');
+            $marketoSoapEndPoint = get_option('wmi-mkto-soap-end-point');
+            $marketoUserId = get_option('wmi-mkto-marketo-user-id');
+            $marketoSecretKey = get_option('wmi-mkto-marketo-secret-key');
+            $marketoNameSpace = get_option('wmi-mkto-marketo-name-space');
+
+            $marketoProgramName = get_option('wmi-mkto-marketo-program-name');
+            $marketoCampaignName = get_option('wmi-mkto-marketo-campaign-name');
+
+
+            $marketoTitleToken = get_option('wmi-mkto-marketo-token-title');
+            $marketoContentToken = get_option('wmi-mkto-marketo-token-content');
+            $marketoLinkToken = get_option('wmi-mkto-marketo-token-link');
 
 
         // Create Signature
-        $dtzObj = new DateTimeZone("America/Los_Angeles");
-        $dtObj  = new DateTime('now', $dtzObj);
-        $timeStamp = $dtObj->format(DATE_W3C);
-        $encryptString = $timeStamp . $marketoUserId;
-        $signature = hash_hmac('sha1', $encryptString, $marketoSecretKey);
+            $dtzObj = new DateTimeZone("America/Los_Angeles");
+            $dtObj  = new DateTime('now', $dtzObj);
+            $timeStamp = $dtObj->format(DATE_W3C);
+            $encryptString = $timeStamp . $marketoUserId;
+            $signature = hash_hmac('sha1', $encryptString, $marketoSecretKey);
 
         // Create SOAP Header
-        $attrs = new stdClass();
-        $attrs->mktowsUserId = $marketoUserId;
-        $attrs->requestSignature = $signature;
-        $attrs->requestTimestamp = $timeStamp;
+            $attrs = new stdClass();
+            $attrs->mktowsUserId = $marketoUserId;
+            $attrs->requestSignature = $signature;
+            $attrs->requestTimestamp = $timeStamp;
 
-        $authHdr = new SoapHeader($marketoNameSpace, 'AuthenticationHeader', $attrs);
-        $options = array("connection_timeout" => 20, "location" => $marketoSoapEndPoint);
+            $authHdr = new SoapHeader($marketoNameSpace, 'AuthenticationHeader', $attrs);
+            $options = array("connection_timeout" => 20, "location" => $marketoSoapEndPoint);
 
-        if ($debug) {
-            $options["trace"] = true;
-        }
+            if ($debug) {
+                $options["trace"] = true;
+            }
 
         // Create Request
-        $params = new stdClass();
-        $params->programName = $marketoProgramName;
-        $params->campaignName = $marketoCampaignName;
-        $dtObj = new DateTime('now', $dtzObj);
-        $params->campaignRunAt = $dtObj->format(DATE_W3C);
+            $params = new stdClass();
+            $params->programName = $marketoProgramName;
+            $params->campaignName = $marketoCampaignName;
+            $dtObj = new DateTime('now', $dtzObj);
+            $params->campaignRunAt = $dtObj->format(DATE_W3C);
 
 
-        $token = new stdClass();
-        $token->name = $marketoTitleToken;
-        $token->value = $title;
+            $token = new stdClass();
+            $token->name = $marketoTitleToken;
+            $token->value = $title;
 
-        $token_body = new stdClass();
-        $token_body->name = $marketoContentToken;
-        $token_body->value = $resume;
+            $token_body = new stdClass();
+            $token_body->name = $marketoContentToken;
+            $token_body->value = $resume;
 
-        $token_link = new stdClass();
-        $token_link->name = $marketoLinkToken;
-        $token_link->value = $link;
+            $token_link = new stdClass();
+            $token_link->name = $marketoLinkToken;
+            $token_link->value = $link;
 
-        $params->programTokenList->attrib = array($token, $token_body, $token_link);
+            $params->programTokenList->attrib = array($token, $token_body, $token_link);
 
 
-        $params = array("paramsScheduleCampaign" => $params);
+            $params = array("paramsScheduleCampaign" => $params);
 
-        $soapClient = new SoapClient($marketoSoapEndPoint ."?WSDL", $options);
-        try {
-            $response = $soapClient->__soapCall('scheduleCampaign', $params, $options, $authHdr);
+            $soapClient = new SoapClient($marketoSoapEndPoint ."?WSDL", $options);
+            try {
+                $response = $soapClient->__soapCall('scheduleCampaign', $params, $options, $authHdr);
+            }
+            catch(Exception $ex) {
+                var_dump($ex);
+            }
+
+            if ($debug) {
+                echo "RAW request:\n" .$soapClient->__getLastRequest() ."\n";
+                echo "RAW response:\n" .$soapClient->__getLastResponse() ."\n";
+            }
+
         }
-        catch(Exception $ex) {
-            var_dump($ex);
-        }
-
-        if ($debug) {
-            echo "RAW request:\n" .$soapClient->__getLastRequest() ."\n";
-            echo "RAW response:\n" .$soapClient->__getLastResponse() ."\n";
-        }
-
         return $post_ID;
     }
     //add_action('publish_post', 'os_scheduleCampaign');
@@ -146,7 +150,7 @@
         $em = $_POST[$emailfield];
         $h = hash('sha1', get_option('wmi-mkto-api-key') . $em);
         $track = get_option('wmi-mkto-tracking');
-        if ($em != '' || $track) {
+        if ( $track ) {
             ?>
             <script type="text/javascript">
             document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
@@ -155,13 +159,6 @@
             Munchkin.init("<?php echo get_option('wmi-mkto-account-id'); ?>");
             </script>
             <?php }
-            if ($em != '') {
-                ?>
-                <script type="text/javascript">
-                mktoMunchkinFunction("associateLead",{<?php echo rtrim($output, ','); ?>},"<?php echo $h; ?>");
-                </script>
-                <?php
-            }
         }
 
         function wmi_admin_menu() {
