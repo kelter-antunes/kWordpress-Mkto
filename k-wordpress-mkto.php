@@ -130,15 +130,12 @@ function mkto_scheduleCampaign( $post_id ) {
 
             $post = get_post( $post_id );
 
-
-
             $title = $post->post_title;
 
             $pos = stripos( $post->post_content, '<!--more-->' );
             $pos = ( $pos===false ) ? 50 : $pos;
             $resume = substr( $post->post_content, 0, $pos );
             $link = get_permalink( $post_id ) . '?utm_source=blog&utm_medium=email&utm_campaign=';
-
 
             $marketoSoapEndPoint = get_option( 'kwm-mkto-soap-end-point' );
             $marketoUserId = get_option( 'kwm-mkto-marketo-user-id' );
@@ -148,11 +145,9 @@ function mkto_scheduleCampaign( $post_id ) {
             $marketoProgramName = get_option( 'kwm-mkto-marketo-program-name' );
             $marketoCampaignName = get_option( 'kwm-mkto-marketo-campaign-name' );
 
-
             $marketoTitleToken = get_option( 'kwm-mkto-marketo-token-title' );
             $marketoContentToken = get_option( 'kwm-mkto-marketo-token-content' );
             $marketoLinkToken = get_option( 'kwm-mkto-marketo-token-link' );
-
 
             // Create Signature
             $dtzObj = new DateTimeZone( "America/Los_Angeles" );
@@ -196,7 +191,6 @@ function mkto_scheduleCampaign( $post_id ) {
 
             $params->programTokenList->attrib = array( $token, $token_body, $token_link );
 
-
             $params = array( "paramsScheduleCampaign" => $params );
 
             $soapClient = new SoapClient( $marketoSoapEndPoint ."?WSDL", $options );
@@ -219,143 +213,128 @@ function mkto_scheduleCampaign( $post_id ) {
         }
         return $post_id;
     }
-
-
     return $post_id;
 }
-//add_action('publish_post', 'os_scheduleCampaign');
 
 
 function kwm_call_code() {
-    $j = get_option( 'kwm-mkto-field-map' );
-    $fields = json_decode( $j );
-    $output = '';
-    foreach ( $fields as $map ) {
-        foreach ( $map as $k=>$v ) {
-            if ( strpos( $k, '*' ) !== false ) {
-                $emailfield = $v;
-                $k = str_replace( '*', '', $k );
-            }
-            $sendval = $_POST[$v];
-            if ( $sendval ) $output .= $k . ': decodeURIComponent("' . rawurlencode( $sendval ) . '"),';
-            //if ($sendval) $output .= $k . ': "' . $sendval . '",';
-        }
-    }
-    $em = $_POST[$emailfield];
-    $h = hash( 'sha1', get_option( 'kwm-mkto-api-key' ) . $em );
-    $track = get_option( 'kwm-mkto-tracking' );
-    if ( $track ) {
+
+    $track = get_option('kwm-mkto-tracking');
+    if ($track) {
         ?>
         <script type="text/javascript">
         document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
         </script>
         <script type="text/javascript">
-        Munchkin.init("<?php echo get_option( 'kwm-mkto-account-id' ); ?>");
+        Munchkin.init("<?php echo get_option('kwm-mkto-account-id'); ?>");
         </script>
-        <?php }
+        <?php 
     }
 
-    function kwm_admin_menu() {
-        add_options_page( 'k Wordpress Mkto', 'kWordpress-Mkto', 'administrator', 'k-wordpress-mkto.php', 'kwm_options_page' );
-    }
+}
 
-    function kwm_register_settings() {
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-account-id' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-api-key' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-tracking' );
 
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-soap-end-point' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-user-id' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-secret-key' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-name-space' );
+function kwm_admin_menu() {
+    add_options_page( 'k Wordpress Mkto', 'kWordpress-Mkto', 'administrator', 'k-wordpress-mkto.php', 'kwm_options_page' );
+}
 
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-program-name' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-campaign-name' );
+function kwm_register_settings() {
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-account-id' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-api-key' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-tracking' );
 
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-title' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-content' );
-        register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-link' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-soap-end-point' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-user-id' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-secret-key' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-name-space' );
 
-    }
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-program-name' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-campaign-name' );
 
-    function kwm_options_page() {
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-title' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-content' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-link' );
 
-        ?>
-        <div class="wrap">
-            <h2>kWordpress-Mkto</h2>
+}
 
-            <form method="post" action="options.php">
-                <?php settings_fields( 'kwm-settings-group-api' ); ?>
-                <?php do_settings_sections( 'kwm-settings-group-api' ); ?>
-                <style>
-                #kwm-field-mapping tr th, #kwm-field-mapping tr td {
-                    padding: 3px 0;
-                }
-                </style>
-                <table class="form-table">
-                    <thead>
-                        <tr valign="top">
-                            <th scope="row">Marketo Account ID:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-account-id" value="<?php echo get_option( 'kwm-mkto-account-id' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Munchkin API Key:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-api-key" value="<?php echo get_option( 'kwm-mkto-api-key' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Track Lead Activity:</th>
-                            <?php
-                            $track = get_option( 'kwm-mkto-tracking' );
-                            if ( $track ) $track = 'checked';
-                            ?>
-                            <td><input type="checkbox" name="kwm-mkto-tracking" <?php echo $track; ?> /></td>
-                        </tr>
-
-                        <tr valign="top">
-                            <th scope="row">Soap End Point:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-soap-end-point" value="<?php echo get_option( 'kwm-mkto-soap-end-point' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">User Id:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-user-id" value="<?php echo get_option( 'kwm-mkto-marketo-user-id' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Secret Key:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-secret-key" value="<?php echo get_option( 'kwm-mkto-marketo-secret-key' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Name Space:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-name-space" value="<?php echo get_option( 'kwm-mkto-marketo-name-space' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Program Name:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-program-name" value="<?php echo get_option( 'kwm-mkto-marketo-program-name' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Campaign Name:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-campaign-name" value="<?php echo get_option( 'kwm-mkto-marketo-campaign-name' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Email Token Title:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-title" value="<?php echo get_option( 'kwm-mkto-marketo-token-title' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Email Token Content:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-content" value="<?php echo get_option( 'kwm-mkto-marketo-token-content' ); ?>" /></td>
-                        </tr>
-                        <tr valign="top">
-                            <th scope="row">Email Token Link:</th>
-                            <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-link" value="<?php echo get_option( 'kwm-mkto-marketo-token-link' ); ?>" /></td>
-                        </tr>
-                    </thead>
-                </table>
-
-                <?php submit_button(); ?>
-
-            </form>
-        </div>
-
-        <?php
-    }
+function kwm_options_page() {
 
     ?>
+    <div class="wrap">
+        <h2>kWordpress-Mkto</h2>
+
+        <form method="post" action="options.php">
+            <?php settings_fields( 'kwm-settings-group-api' ); ?>
+            <?php do_settings_sections( 'kwm-settings-group-api' ); ?>
+            <style>
+            #kwm-field-mapping tr th, #kwm-field-mapping tr td {
+                padding: 3px 0;
+            }
+            </style>
+            <table class="form-table">
+                <thead>
+                    <tr valign="top">
+                        <th scope="row">Marketo Account ID:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-account-id" value="<?php echo get_option( 'kwm-mkto-account-id' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Munchkin API Key:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-api-key" value="<?php echo get_option( 'kwm-mkto-api-key' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Track Lead Activity:</th>
+                        <?php
+                        $track = get_option( 'kwm-mkto-tracking' );
+                        if ( $track ) $track = 'checked';
+                        ?>
+                        <td><input type="checkbox" name="kwm-mkto-tracking" <?php echo $track; ?> /></td>
+                    </tr>
+
+                    <tr valign="top">
+                        <th scope="row">Soap End Point:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-soap-end-point" value="<?php echo get_option( 'kwm-mkto-soap-end-point' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">User Id:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-user-id" value="<?php echo get_option( 'kwm-mkto-marketo-user-id' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Secret Key:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-secret-key" value="<?php echo get_option( 'kwm-mkto-marketo-secret-key' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Name Space:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-name-space" value="<?php echo get_option( 'kwm-mkto-marketo-name-space' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Program Name:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-program-name" value="<?php echo get_option( 'kwm-mkto-marketo-program-name' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Campaign Name:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-campaign-name" value="<?php echo get_option( 'kwm-mkto-marketo-campaign-name' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Email Token Title:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-title" value="<?php echo get_option( 'kwm-mkto-marketo-token-title' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Email Token Content:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-content" value="<?php echo get_option( 'kwm-mkto-marketo-token-content' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Email Token Link:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-link" value="<?php echo get_option( 'kwm-mkto-marketo-token-link' ); ?>" /></td>
+                    </tr>
+                </thead>
+            </table>
+
+            <?php submit_button(); ?>
+
+        </form>
+    </div>
+
+    <?php
+}
+
+?>
