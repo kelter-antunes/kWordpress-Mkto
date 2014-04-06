@@ -79,12 +79,12 @@ function mkto_save_post_meta_box_content( $post ) {
 function mkto_save_post_meta_box_save( $post_id ) {
 
     // If this is an autosave, this form has not been submitted, so we don't want to do anything.
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ){
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
         return $post_id;
     }
 
     // If this is just a revision, don't send the email.
-    if ( wp_is_post_revision( $post_id ) ){
+    if ( wp_is_post_revision( $post_id ) ) {
         return $post_id;
     }
 
@@ -118,15 +118,15 @@ function mkto_scheduleCampaign( $post_id ) {
     $emailsent = get_post_meta( $post_id->ID, 'email_sent', true );
 
     //send only one time
-    if ($emailsent != true) {
+    if ( $emailsent != true ) {
 
-        if ( $debug == false ) {   
+        if ( $debug == false ) {
             $disabled = get_post_meta( $post_id, 'send_email_disabled', true );
         }
 
         if ( ( ( $_POST['post_status'] == 'publish' ) && empty( $disabled ) ) || $debug ) {
 
-        // Get Post Info
+            // Get Post Info
 
             $post = get_post( $post_id );
 
@@ -154,14 +154,14 @@ function mkto_scheduleCampaign( $post_id ) {
             $marketoLinkToken = get_option( 'kwm-mkto-marketo-token-link' );
 
 
-        // Create Signature
+            // Create Signature
             $dtzObj = new DateTimeZone( "America/Los_Angeles" );
             $dtObj  = new DateTime( 'now', $dtzObj );
             $timeStamp = $dtObj->format( DATE_W3C );
             $encryptString = $timeStamp . $marketoUserId;
             $signature = hash_hmac( 'sha1', $encryptString, $marketoSecretKey );
 
-        // Create SOAP Header
+            // Create SOAP Header
             $attrs = new stdClass();
             $attrs->mktowsUserId = $marketoUserId;
             $attrs->requestSignature = $signature;
@@ -174,7 +174,7 @@ function mkto_scheduleCampaign( $post_id ) {
                 $options["trace"] = true;
             }
 
-        // Create Request
+            // Create Request
             $params = new stdClass();
             $params->programName = $marketoProgramName;
             $params->campaignName = $marketoCampaignName;
