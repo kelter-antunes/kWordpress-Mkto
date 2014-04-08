@@ -23,9 +23,6 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
-    add_action( 'wp_enqueue_scripts', 'kwm_scripts' );
-    add_action( 'admin_enqueue_scripts', 'kwm_scripts' );
     add_action( 'admin_menu', 'kwm_admin_menu' );
     add_action( 'admin_init', 'kwm_register_settings' );
     add_action( 'wp_head', 'kwm_call_code' );
@@ -33,12 +30,6 @@
 
     add_action( 'admin_init', 'mkto_save_post_add_meta_box' );
     add_action( 'save_post', 'mkto_save_post_meta_box_save' );
-
-
-    function kwm_scripts() {
-    //wp_enqueue_script( 'k-wordpress-mkto.js', plugins_url() . '/os-marketo-integration/k-wordpress-mkto.js', array(), '1.0.0', false );
-    }
-
 
 /**
  * Load meta box in post edit screen
@@ -217,22 +208,92 @@ function mkto_scheduleCampaign( $post_id ) {
 }
 
 
+/**
+ * Marketo syncLead() wrapper, adapted to register an event
+ * This function will insert or update a single lead record.  When updating an existing lead, the lead can be identified with one of the following keys:
+ *
+ * Marketo ID
+ * Foreign system ID
+ * Marketo Cookie (created by Munchkin JS script)
+ * Email
+ *
+ * more info: http://developers.marketo.com/documentation/soap/synclead/
+ */
+function kwm_syncLeadEvent( $eventValue ) {
+
+    $debug = false;
+
+    $marketoSoapEndPoint = get_option( 'kwm-mkto-soap-end-point' );
+    $marketoUserId = get_option( 'kwm-mkto-marketo-user-id' );
+    $marketoSecretKey = get_option( 'kwm-mkto-marketo-secret-key' );
+    $marketoNameSpace = get_option( 'kwm-mkto-marketo-name-space' );
+
+    // Create Signature
+    $dtzObj = new DateTimeZone( "America/Los_Angeles" );
+    $dtObj  = new DateTime( 'now', $dtzObj );
+    $timeStamp = $dtObj->format( DATE_W3C );
+    $encryptString = $timeStamp . $marketoUserId;
+    $signature = hash_hmac( 'sha1', $encryptString, $marketoSecretKey );
+
+    // Create SOAP Header
+    $attrs = new stdClass();
+    $attrs->mktowsUserId = $marketoUserId;
+    $attrs->requestSignature = $signature;
+    $attrs->requestTimestamp = $timeStamp;
+    $authHdr = new SoapHeader( $marketoNameSpace, 'AuthenticationHeader', $attrs );
+    $options = array( "connection_timeout" => 20, "location" => $marketoSoapEndPoint );
+    if ( $debug ) {
+        $options["trace"] = true;
+    }
+
+    // Lead attributes to update
+    $attr1 = new stdClass();
+    $attr1->attrName  = "Event";
+    $attr1->attrValue = $eventValue;
+
+    $attrArray = array( $attr1 );
+    $attrList = new stdClass();
+    $attrList->attribute = $attrArray;
+    $leadKey->leadAttributeList = $attrList;
+
+    $leadRecord = new stdClass();
+    $leadRecord->leadRecord = $leadKey;
+    $leadRecord->marketoCookie = $_COOKIE['_mkto_trk'];
+
+    $leadRecord->returnLead = false;
+
+    $params = array( "paramsSyncLead" => $leadRecord );
+
+    $soapClient = new SoapClient( $marketoSoapEndPoint ."?WSDL", $options );
+    try {
+        $result = $soapClient->__soapCall( 'syncLead', $params, $options, $authHdr );
+    }
+    catch( Exception $ex ) {
+        var_dump( $ex );
+    }
+
+    if ( $debug ) {
+        echo "RAW request:\n" .$soapClient->__getLastRequest() ."\n";
+        echo "RAW response:\n" .$soapClient->__getLastResponse() ."\n";
+    }
+
+}
+
 function kwm_call_code() {
 
-    $track = get_option('kwm-mkto-tracking');
-    if ($track) {
+    $track = get_option( 'kwm-mkto-tracking' );
+    if ( $track ) {
         ?>
         <script type="text/javascript">
         document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
         </script>
         <script type="text/javascript">
-        Munchkin.init("<?php echo get_option('kwm-mkto-account-id'); ?>");
+        Munchkin.init("<?php echo get_option( 'kwm-mkto-account-id' ); ?>");
         </script>
-        <?php 
+        <?php
     }
 
 }
-
 
 function kwm_admin_menu() {
     add_options_page( 'k Wordpress Mkto', 'kWordpress-Mkto', 'administrator', 'k-wordpress-mkto.php', 'kwm_options_page' );
@@ -258,7 +319,6 @@ function kwm_register_settings() {
 }
 
 function kwm_options_page() {
-
     ?>
     <div class="wrap">
         <h2>kWordpress-Mkto</h2>
