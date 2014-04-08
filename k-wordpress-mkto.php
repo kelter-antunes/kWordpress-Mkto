@@ -104,7 +104,7 @@ function mkto_save_post_meta_box_save( $post_id ) {
  */
 function mkto_scheduleCampaign( $post_id ) {
 
-    $debug = true;
+    $debug = false;
 
     $emailsent = get_post_meta( $post_id->ID, 'email_sent', true );
 
