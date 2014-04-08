@@ -104,7 +104,7 @@ function mkto_save_post_meta_box_save( $post_id ) {
  */
 function mkto_scheduleCampaign( $post_id ) {
 
-    $debug = false;
+    $debug = true;
 
     $emailsent = get_post_meta( $post_id->ID, 'email_sent', true );
 
@@ -115,7 +115,7 @@ function mkto_scheduleCampaign( $post_id ) {
             $disabled = get_post_meta( $post_id, 'send_email_disabled', true );
         }
 
-        if ( ( ( $_POST['post_status'] == 'publish' ) && empty( $disabled ) ) || $debug ) {
+        if ( ( ( ( get_post_status ( $post_id ) == 'publish' ) || ( get_post_status ( $post_id ) == 'future' )  ) && empty( $disabled ) ) || $debug ) {
 
             // Get Post Info
 
@@ -164,8 +164,16 @@ function mkto_scheduleCampaign( $post_id ) {
             $params = new stdClass();
             $params->programName = $marketoProgramName;
             $params->campaignName = $marketoCampaignName;
-            $dtObj = new DateTime( 'now', $dtzObj );
-            $params->campaignRunAt = $dtObj->format( DATE_W3C );
+
+
+            if ( get_post_status ( $post_id ) == 'future' ) {
+                $dtObj = new DateTime( $post->post_date, new DateTimeZone( 'America/Los_Angeles' ) );
+                $params->campaignRunAt = $dtObj->format( DATE_W3C );
+
+            } else {
+                $dtObj = new DateTime( 'now', $dtzObj );
+                $params->campaignRunAt = $dtObj->format( DATE_W3C );
+            }
 
 
             $token = new stdClass();
