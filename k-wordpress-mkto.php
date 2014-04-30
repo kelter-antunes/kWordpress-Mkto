@@ -167,7 +167,7 @@ function mkto_scheduleCampaign( $post_id ) {
 
 
             if ( get_post_status ( $post_id ) == 'future' ) {
-                $dtObj = new DateTime( $post->post_date, new DateTimeZone( 'America/Los_Angeles' ) );
+                $dtObj = new DateTime( $post->post_date );
                 $params->campaignRunAt = $dtObj->format( DATE_W3C );
 
             } else {
