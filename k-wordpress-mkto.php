@@ -98,6 +98,15 @@ function mkto_save_post_meta_box_save( $post_id ) {
 }
 
 /**
+ * Remove specific html tags from string
+ */
+function strip_single($tag,$string){
+    $string=preg_replace('/<'.$tag.'[^>]*>/i', '', $string);
+    $string=preg_replace('/<\/'.$tag.'>/i', '', $string);
+    return $string;
+  }
+
+/**
  * Marketo scheduleCampaign() wrapper
  * schedules a next run for a campaign that will send an email with the blog post content
  * for blog post subscribers
@@ -126,6 +135,8 @@ function mkto_scheduleCampaign( $post_id ) {
             $pos = stripos( $post->post_content, '<!--more-->' );
             $pos = ( $pos===false ) ? 50 : $pos;
             $resume = substr( $post->post_content, 0, $pos );
+            $resume = strip_single("a", $resume); //remove anchor html tags
+            $resume = strip_single("img", $resume); //remove imghtml tags
             $link = get_permalink( $post_id ) . '?utm_source=blog&utm_medium=email&utm_campaign=';
 
             $marketoSoapEndPoint = get_option( 'kwm-mkto-soap-end-point' );
