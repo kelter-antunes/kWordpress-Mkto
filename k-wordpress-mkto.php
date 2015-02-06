@@ -3,7 +3,7 @@
  * Plugin Name: kWordpress-Mkto
  * Plugin URI: https://github.com/kelter-antunes/kWordpress-Mkto
  * Description: Simple but awesome Marketo integration with Wordpress. It wraps the scheduleCampaign() Api call, to send email to an email subscribers smart list.
- * Version: 0.3
+ * Version: 0.4
  * Author: Miguel Antunes
  * Author URI: https://github.com/kelter-antunes
  * License: GPL2
@@ -104,7 +104,7 @@ function strip_single($tag,$string){
     $string=preg_replace('/<'.$tag.'[^>]*>/i', '', $string);
     $string=preg_replace('/<\/'.$tag.'>/i', '', $string);
     return $string;
-  }
+}
 
 /**
  * Marketo scheduleCampaign() wrapper
@@ -132,12 +132,16 @@ function mkto_scheduleCampaign( $post_id ) {
 
             $title = $post->post_title;
 
-            $pos = stripos( $post->post_content, '<!--more-->' );
-            $pos = ( $pos===false ) ? 50 : $pos;
-            $resume = substr( $post->post_content, 0, $pos );
-            $resume = strip_single("a", $resume); //remove anchor html tags
-            $resume = strip_single("img", $resume); //remove imghtml tags
+            //$pos = stripos( $post->post_content, '<!--more-->' );
+            //$pos = ( $pos===false ) ? 50 : $pos;
+            //$resume = substr( $post->post_content, 0, $pos );
+            $resume = $post->post_excerpt;
+
+            //$resume = strip_single("a", $resume); //remove anchor html tags
+            //$resume = strip_single("img", $resume); //remove imghtml tags
             $link = get_permalink( $post_id ) . '?utm_source=blog&utm_medium=email&utm_campaign=';
+
+            $image = get_the_post_thumbnail( $post_id, 'full', array( 'width' => '100%' ) ); 
 
             $marketoSoapEndPoint = get_option( 'kwm-mkto-soap-end-point' );
             $marketoUserId = get_option( 'kwm-mkto-marketo-user-id' );
@@ -150,6 +154,7 @@ function mkto_scheduleCampaign( $post_id ) {
             $marketoTitleToken = get_option( 'kwm-mkto-marketo-token-title' );
             $marketoContentToken = get_option( 'kwm-mkto-marketo-token-content' );
             $marketoLinkToken = get_option( 'kwm-mkto-marketo-token-link' );
+            $marketoImageToken = get_option( 'kwm-mkto-marketo-token-image' );
 
             // Create Signature
             $dtzObj = new DateTimeZone( "America/Los_Angeles" );
@@ -199,7 +204,11 @@ function mkto_scheduleCampaign( $post_id ) {
             $token_link->name = $marketoLinkToken;
             $token_link->value = $link;
 
-            $params->programTokenList->attrib = array( $token, $token_body, $token_link );
+            $token_image = new stdClass();
+            $token_image->name = $marketoImageToken;
+            $token_image->value = $image;
+
+            $params->programTokenList->attrib = array( $token, $token_body, $token_link, $token_image );
 
             $params = array( "paramsScheduleCampaign" => $params );
 
@@ -304,10 +313,10 @@ function kwm_call_code() {
     if ( $track ) {
         ?>
         <script type="text/javascript">
-        document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+            document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
         </script>
         <script type="text/javascript">
-        Munchkin.init("<?php echo get_option( 'kwm-mkto-account-id' ); ?>");
+            Munchkin.init("<?php echo get_option( 'kwm-mkto-account-id' ); ?>");
         </script>
         <?php
     }
@@ -334,6 +343,7 @@ function kwm_register_settings() {
     register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-title' );
     register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-content' );
     register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-link' );
+    register_setting( 'kwm-settings-group-api', 'kwm-mkto-marketo-token-image' );
 
 }
 
@@ -346,9 +356,9 @@ function kwm_options_page() {
             <?php settings_fields( 'kwm-settings-group-api' ); ?>
             <?php do_settings_sections( 'kwm-settings-group-api' ); ?>
             <style>
-            #kwm-field-mapping tr th, #kwm-field-mapping tr td {
-                padding: 3px 0;
-            }
+                #kwm-field-mapping tr th, #kwm-field-mapping tr td {
+                    padding: 3px 0;
+                }
             </style>
             <table class="form-table">
                 <thead>
@@ -404,6 +414,10 @@ function kwm_options_page() {
                     <tr valign="top">
                         <th scope="row">Email Token Link:</th>
                         <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-link" value="<?php echo get_option( 'kwm-mkto-marketo-token-link' ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Email Token Image:</th>
+                        <td><input style="width:500px" type="text" name="kwm-mkto-marketo-token-image" value="<?php echo get_option( 'kwm-mkto-marketo-token-image' ); ?>" /></td>
                     </tr>
                 </thead>
             </table>
